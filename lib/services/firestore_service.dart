@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/budget_config.dart';
-import '../models/pet_progress.dart';
+import '../models/level_progress.dart';
 import '../models/transaction_entry.dart';
 
 class FirestoreService {
@@ -22,8 +22,12 @@ class FirestoreService {
         .doc('budget');
   }
 
-  DocumentReference<Map<String, dynamic>> _petRef(String uid) {
-    return _firestore.collection('users').doc(uid).collection('settings').doc('pet');
+  DocumentReference<Map<String, dynamic>> _levelRef(String uid) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('settings')
+        .doc('level');
   }
 
   Stream<List<TransactionEntry>> watchTransactions(String uid) {
@@ -59,13 +63,15 @@ class FirestoreService {
     await _budgetRef(uid).set(budget.toMap(), SetOptions(merge: true));
   }
 
-  Stream<PetProgress> watchPetProgress(String uid) {
-    return _petRef(uid).snapshots().map((DocumentSnapshot<Map<String, dynamic>> doc) {
-      return PetProgress.fromMap(doc.data());
+  Stream<LevelProgress> watchLevelProgress(String uid) {
+    return _levelRef(uid).snapshots().map((
+      DocumentSnapshot<Map<String, dynamic>> doc,
+    ) {
+      return LevelProgress.fromMap(doc.data());
     });
   }
 
-  Future<void> savePetProgress(String uid, PetProgress petProgress) async {
-    await _petRef(uid).set(petProgress.toMap(), SetOptions(merge: true));
+  Future<void> saveLevelProgress(String uid, LevelProgress levelProgress) async {
+    await _levelRef(uid).set(levelProgress.toMap(), SetOptions(merge: true));
   }
 }

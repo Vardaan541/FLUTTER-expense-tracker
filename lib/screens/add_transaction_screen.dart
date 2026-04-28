@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/transaction_entry.dart';
-import '../providers/budget_provider.dart';
-import '../providers/pet_provider.dart';
+import '../providers/level_provider.dart';
 import '../providers/transaction_provider.dart';
+import '../widgets/app_card.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   const AddTransactionScreen({super.key});
@@ -63,8 +63,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       return;
     }
 
-    final TransactionProvider transactionProvider =
-        context.read<TransactionProvider>();
+    final TransactionProvider transactionProvider = context
+        .read<TransactionProvider>();
     final TransactionType selectedType = _selectedType;
     final String selectedCategory = _selectedCategory;
     final DateTime selectedDate = _selectedDate;
@@ -91,18 +91,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       return;
     }
 
-    SpendGameFeedback? spendFeedback;
+    LevelGameFeedback? spendFeedback;
     if (selectedType == TransactionType.expense) {
-      final double daySpentAfterTransaction = transactionProvider
-          .expenseTotalForDay(selectedDate);
-      final double monthlyBudgetLimit = context
-          .read<BudgetProvider>()
-          .budget
-          .monthlyLimit;
-      spendFeedback = await context.read<PetProvider>().applyExpenseEvent(
+      spendFeedback = await context.read<LevelProvider>().applyExpenseEvent(
         amount: amount,
-        daySpentAfterTransaction: daySpentAfterTransaction,
-        monthlyBudgetLimit: monthlyBudgetLimit,
         category: selectedCategory,
       );
     }
@@ -128,12 +120,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Transaction added successfully')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Transaction added successfully')),
+    );
   }
 
-  Future<void> _showSpendBattleOverlay(SpendGameFeedback feedback) async {
+  Future<void> _showSpendBattleOverlay(LevelGameFeedback feedback) async {
     if (!mounted) {
       return;
     }
@@ -152,89 +144,112 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             Animation<double> animation,
             Animation<double> secondaryAnimation,
           ) {
-        return Center(
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: accent.withValues(alpha: 0.35),
-                    blurRadius: 22,
-                    spreadRadius: 1,
-                  ),
-                ],
-                border: Border.all(
-                  color: accent.withValues(alpha: 0.65),
-                  width: 1.6,
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  TweenAnimationBuilder<double>(
-                    duration: const Duration(milliseconds: 950),
-                    tween: Tween<double>(begin: 0.85, end: 1.15),
-                    curve: Curves.easeInOut,
-                    builder:
-                        (BuildContext context, double value, Widget? child) {
-                          return Transform.scale(
-                            scale: value,
-                            child: Text(
-                              feedback.emoji,
-                              style: const TextStyle(fontSize: 46),
-                            ),
-                          );
-                        },
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Spend Battle',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      letterSpacing: 1.1,
-                      color: accent,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    feedback.title,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    feedback.message,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      _BattleChip(
-                        icon: Icons.monetization_on_rounded,
-                        label: '+${feedback.coinsDelta} coins',
+            return Center(
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                        color: accent.withValues(alpha: 0.35),
+                        blurRadius: 22,
+                        spreadRadius: 1,
                       ),
-                      const SizedBox(width: 8),
-                      _BattleChip(
-                        icon: Icons.bolt_rounded,
-                        label: 'Combo ${feedback.combo}',
+                    ],
+                    border: Border.all(
+                      color: accent.withValues(alpha: 0.65),
+                      width: 1.6,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 950),
+                        tween: Tween<double>(begin: 0.85, end: 1.15),
+                        curve: Curves.easeInOut,
+                        builder:
+                            (
+                              BuildContext context,
+                              double value,
+                              Widget? child,
+                            ) {
+                              return Transform.scale(
+                                scale: value,
+                                child: Text(
+                                  feedback.emoji,
+                                  style: const TextStyle(fontSize: 46),
+                                ),
+                              );
+                            },
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Spend Battle',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          letterSpacing: 1.1,
+                          color: accent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        feedback.title,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        feedback.message,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          _BattleChip(
+                            icon: Icons.monetization_on_rounded,
+                            label:
+                                '${feedback.pointsDelta >= 0 ? '+' : ''}${feedback.pointsDelta} points',
+                          ),
+                          const SizedBox(width: 8),
+                          _BattleChip(
+                            icon: Icons.bolt_rounded,
+                            label: 'Combo ${feedback.combo}',
+                          ),
+                          const SizedBox(width: 8),
+                          _BattleChip(
+                            icon: Icons.stars_rounded,
+                            label:
+                                'Level ${feedback.level}${feedback.levelDelta > 0 ? ' (+${feedback.levelDelta})' : ''}',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${feedback.levelTitle.emoji} ${feedback.levelTitle.label}',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '${feedback.pointsToNextLevel} pts to next level',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        );
-      },
+            );
+          },
       transitionBuilder:
           (
             BuildContext context,
@@ -245,10 +260,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             return FadeTransition(
               opacity: animation,
               child: ScaleTransition(
-                scale: Tween<double>(
-                  begin: 0.9,
-                  end: 1,
-                ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutBack)),
+                scale: Tween<double>(begin: 0.9, end: 1).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+                ),
                 child: child,
               ),
             );
@@ -263,10 +277,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Color _battleAccent(String title, ColorScheme colorScheme) {
-    if (title.contains('Perfect')) {
+    if (title.contains('Discipline Win')) {
       return Colors.green;
     }
-    if (title.contains('Overheat')) {
+    if (title.contains('Overspend Hit')) {
       return Colors.red;
     }
     if (title.contains('Caution')) {
@@ -284,134 +298,230 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             TransactionProvider transactionProvider,
             Widget? child,
           ) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+            return SafeArea(
               child: Form(
                 key: _formKey,
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    if (transactionProvider.errorMessage != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Text(
-                          transactionProvider.errorMessage!,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            if (transactionProvider.errorMessage != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Text(
+                                  transactionProvider.errorMessage!,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                ),
+                              ),
+                            AppCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    'Transaction Type',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SegmentedButton<TransactionType>(
+                                    showSelectedIcon: true,
+                                    segments:
+                                        const <ButtonSegment<TransactionType>>[
+                                          ButtonSegment<TransactionType>(
+                                            value: TransactionType.expense,
+                                            label: Text('Expense'),
+                                            icon: Icon(
+                                              Icons.arrow_upward_rounded,
+                                            ),
+                                          ),
+                                          ButtonSegment<TransactionType>(
+                                            value: TransactionType.income,
+                                            label: Text('Income'),
+                                            icon: Icon(
+                                              Icons.arrow_downward_rounded,
+                                            ),
+                                          ),
+                                        ],
+                                    selected: <TransactionType>{_selectedType},
+                                    onSelectionChanged:
+                                        (Set<TransactionType> selected) {
+                                          setState(() {
+                                            _selectedType = selected.first;
+                                            _selectedCategory =
+                                                _activeCategories.first;
+                                          });
+                                        },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            AppCard(
+                              child: Column(
+                                children: <Widget>[
+                                  TextFormField(
+                                    controller: _amountController,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    decoration: const InputDecoration(
+                                      labelText: 'Amount',
+                                      hintText: 'e.g. 499.99',
+                                      prefixIcon: Icon(
+                                        Icons.currency_rupee_rounded,
+                                      ),
+                                    ),
+                                    validator: (String? value) {
+                                      if (value == null ||
+                                          value.trim().isEmpty) {
+                                        return 'Amount is required';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 12),
+                                  DropdownButtonFormField<String>(
+                                    initialValue: _selectedCategory,
+                                    items: _activeCategories.map((
+                                      String category,
+                                    ) {
+                                      return DropdownMenuItem<String>(
+                                        value: category,
+                                        child: Row(
+                                          children: <Widget>[
+                                            Icon(
+                                              _categoryIcon(category),
+                                              size: 18,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(category),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                    onChanged: (String? value) {
+                                      if (value == null) {
+                                        return;
+                                      }
+                                      setState(() {
+                                        _selectedCategory = value;
+                                      });
+                                    },
+                                    decoration: const InputDecoration(
+                                      labelText: 'Category',
+                                      prefixIcon: Icon(Icons.category_outlined),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextFormField(
+                                    controller: _noteController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Note (optional)',
+                                      prefixIcon: Icon(Icons.notes_rounded),
+                                    ),
+                                    maxLines: 2,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  InkWell(
+                                    onTap: _pickDate,
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: InputDecorator(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Date',
+                                        prefixIcon: Icon(
+                                          Icons.calendar_today_rounded,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyLarge,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-            SegmentedButton<TransactionType>(
-              segments: const <ButtonSegment<TransactionType>>[
-                ButtonSegment<TransactionType>(
-                  value: TransactionType.expense,
-                  label: Text('Expense'),
-                  icon: Icon(Icons.arrow_upward_rounded),
-                ),
-                ButtonSegment<TransactionType>(
-                  value: TransactionType.income,
-                  label: Text('Income'),
-                  icon: Icon(Icons.arrow_downward_rounded),
-                ),
-              ],
-              selected: <TransactionType>{_selectedType},
-              onSelectionChanged: (Set<TransactionType> selected) {
-                setState(() {
-                  _selectedType = selected.first;
-                  _selectedCategory = _activeCategories.first;
-                });
-              },
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                hintText: 'e.g. 499.99',
-                border: OutlineInputBorder(),
-              ),
-              validator: (String? value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Amount is required';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              initialValue: _selectedCategory,
-              items: _activeCategories.map((String category) {
-                return DropdownMenuItem<String>(
-                  value: category,
-                  child: Text(category),
-                );
-              }).toList(),
-              onChanged: (String? value) {
-                if (value == null) {
-                  return;
-                }
-                setState(() {
-                  _selectedCategory = value;
-                });
-              },
-              decoration: const InputDecoration(
-                labelText: 'Category',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _noteController,
-              decoration: const InputDecoration(
-                labelText: 'Note (optional)',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 12),
-            InkWell(
-              onTap: _pickDate,
-              borderRadius: BorderRadius.circular(10),
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Date',
-                  border: OutlineInputBorder(),
-                ),
-                child: Text(
-                  '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                onPressed: transactionProvider.isSubmitting
-                    ? null
-                    : _saveTransaction,
-                icon: transactionProvider.isSubmitting
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.save),
-                label: Text(
-                  transactionProvider.isSubmitting
-                      ? 'Saving...'
-                      : 'Save Transaction',
-                ),
-              ),
-            ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 18),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 18,
+                            offset: const Offset(0, -3),
+                          ),
+                        ],
+                      ),
+                      child: FilledButton.icon(
+                        onPressed: transactionProvider.isSubmitting
+                            ? null
+                            : _saveTransaction,
+                        icon: transactionProvider.isSubmitting
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.check_circle_rounded),
+                        label: Text(
+                          transactionProvider.isSubmitting
+                              ? 'Saving...'
+                              : 'Save Transaction',
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             );
           },
     );
+  }
+
+  IconData _categoryIcon(String category) {
+    switch (category) {
+      case 'Food':
+        return Icons.restaurant_rounded;
+      case 'Travel':
+        return Icons.directions_car_rounded;
+      case 'Bills':
+        return Icons.receipt_long_rounded;
+      case 'Shopping':
+        return Icons.shopping_bag_rounded;
+      case 'Health':
+        return Icons.favorite_rounded;
+      case 'Entertainment':
+        return Icons.movie_rounded;
+      case 'Education':
+        return Icons.school_rounded;
+      case 'Salary':
+        return Icons.wallet_rounded;
+      case 'Freelance':
+        return Icons.work_outline_rounded;
+      case 'Gift':
+        return Icons.card_giftcard_rounded;
+      case 'Investment':
+        return Icons.stacked_line_chart_rounded;
+      default:
+        return Icons.category_rounded;
+    }
   }
 }
 

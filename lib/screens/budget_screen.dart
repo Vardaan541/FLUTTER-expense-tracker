@@ -6,6 +6,7 @@ import '../models/budget_config.dart';
 import '../models/transaction_entry.dart';
 import '../providers/budget_provider.dart';
 import '../providers/transaction_provider.dart';
+import '../widgets/app_card.dart';
 
 class BudgetScreen extends StatefulWidget {
   const BudgetScreen({super.key});
@@ -128,7 +129,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
             }
 
             return ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
               children: <Widget>[
                 if (budgetProvider.errorMessage != null)
                   Padding(
@@ -140,84 +141,92 @@ class _BudgetScreenState extends State<BudgetScreen> {
                       ),
                     ),
                   ),
-                Text(
-                  'Monthly Budget Overview',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: progress <= 0 ? 0 : (progress > 1 ? 1 : progress),
-                  minHeight: 10,
-                  borderRadius: BorderRadius.circular(10),
-                  color: exceeded ? Colors.red : Colors.green,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Spent this month: ${currency.format(monthSpent)}'
-                  '${budget.monthlyLimit > 0 ? ' / ${currency.format(budget.monthlyLimit)}' : ''}',
-                ),
-                if (exceeded)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 6),
-                    child: Text(
-                      'Alert: Monthly budget exceeded',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontWeight: FontWeight.w600,
+                AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Monthly Budget Overview',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
-                    ),
-                  ),
-                const SizedBox(height: 18),
-                TextFormField(
-                  controller: _monthlyLimitController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Monthly Total Budget',
-                    hintText: 'e.g. 25000',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 18),
-                Text(
-                  'Category Limits',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                for (final String category
-                    in TransactionEntry.expenseCategories) ...<Widget>[
-                  TextFormField(
-                    controller: _categoryControllers[category],
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: '$category Limit',
-                      hintText: 'Optional',
-                      border: const OutlineInputBorder(),
-                      suffixIcon: overLimitByCategory[category] == true
-                          ? const Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.red,
-                            )
-                          : null,
-                    ),
-                  ),
-                  if ((monthByCategory[category] ?? 0) > 0)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, bottom: 8),
-                      child: Text(
-                        'Spent in $category: ${currency.format(monthByCategory[category] ?? 0)}',
-                        style: TextStyle(
-                          color: overLimitByCategory[category] == true
-                              ? Colors.red
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                      const SizedBox(height: 12),
+                      LinearProgressIndicator(
+                        value: progress.clamp(0, 1),
+                        minHeight: 10,
+                        color: exceeded ? Colors.red : Colors.green,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Spent: ${currency.format(monthSpent)}${budget.monthlyLimit > 0 ? ' / ${currency.format(budget.monthlyLimit)}' : ''}',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        exceeded
+                            ? 'Budget exceeded. Reduce non-essential spending.'
+                            : 'You are on track this month.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: exceeded ? Colors.red : Colors.green,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ),
-                  const SizedBox(height: 8),
-                ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Set Limits',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _monthlyLimitController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Monthly Total Budget',
+                          hintText: 'e.g. 25000',
+                          prefixIcon: Icon(Icons.savings_rounded),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'Category Plans',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 12),
+                      for (final String category
+                          in TransactionEntry.expenseCategories) ...<Widget>[
+                        _CategoryBudgetTile(
+                          category: category,
+                          controller: _categoryControllers[category]!,
+                          spent: monthByCategory[category] ?? 0,
+                          spentText: currency.format(
+                            monthByCategory[category] ?? 0,
+                          ),
+                          isOverLimit: overLimitByCategory[category] == true,
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
                 FilledButton.icon(
                   onPressed: budgetProvider.isSubmitting
                       ? null
@@ -228,7 +237,7 @@ class _BudgetScreenState extends State<BudgetScreen> {
                           height: 18,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.save),
+                      : const Icon(Icons.save_rounded),
                   label: Text(
                     budgetProvider.isSubmitting
                         ? 'Saving...'
@@ -238,6 +247,65 @@ class _BudgetScreenState extends State<BudgetScreen> {
               ],
             );
           },
+    );
+  }
+}
+
+class _CategoryBudgetTile extends StatelessWidget {
+  const _CategoryBudgetTile({
+    required this.category,
+    required this.controller,
+    required this.spent,
+    required this.spentText,
+    required this.isOverLimit,
+  });
+
+  final String category;
+  final TextEditingController controller;
+  final double spent;
+  final String spentText;
+  final bool isOverLimit;
+
+  @override
+  Widget build(BuildContext context) {
+    final double limit = double.tryParse(controller.text.trim()) ?? 0;
+    final double usage = limit <= 0 ? 0 : (spent / limit).clamp(0.0, 1.0);
+    final Color progressColor = isOverLimit ? Colors.red : Colors.green;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        TextFormField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            labelText: category,
+            hintText: 'Optional',
+            prefixIcon: const Icon(Icons.pie_chart_outline_rounded),
+            suffixIcon: isOverLimit
+                ? const Icon(Icons.warning_amber_rounded, color: Colors.red)
+                : null,
+          ),
+        ),
+        if (spent > 0) ...<Widget>[
+          const SizedBox(height: 8),
+          LinearProgressIndicator(
+            value: usage,
+            minHeight: 8,
+            color: progressColor,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Spent in $category: $spentText',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: isOverLimit
+                  ? Colors.red
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

@@ -3,12 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/budget_provider.dart';
-import '../providers/pet_provider.dart';
+import '../providers/level_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
 import 'budget_screen.dart';
-import 'dashboard_screen.dart';
+import 'dashboard_screen_v2.dart';
 import 'transactions_screen.dart';
 
 class HomeShellScreen extends StatefulWidget {
@@ -31,10 +31,10 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
   ];
 
   final List<String> _titles = const <String>[
-    'Burn Arena',
+    'Daily Burn',
     'Add Entry',
     'History',
-    'Budget Plan',
+    'Plan',
   ];
 
   @override
@@ -58,7 +58,7 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
       }
       context.read<TransactionProvider>().bindToUser(widget.uid);
       context.read<BudgetProvider>().bindToUser(widget.uid);
-      context.read<PetProvider>().bindToUser(widget.uid);
+      context.read<LevelProvider>().bindToUser(widget.uid);
     });
   }
 
@@ -66,6 +66,7 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 76,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -74,9 +75,9 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
               Text(
                 'Control your daily burn',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(
-                    alpha: 0.72,
-                  ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.72),
                 ),
               ),
           ],
@@ -106,7 +107,7 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
             onPressed: () async {
               context.read<TransactionProvider>().clear();
               context.read<BudgetProvider>().clear();
-              context.read<PetProvider>().clear();
+              context.read<LevelProvider>().clear();
               await context.read<AuthProvider>().signOut();
             },
             icon: const Icon(Icons.logout),
@@ -114,7 +115,15 @@ class _HomeShellScreenState extends State<HomeShellScreen> {
           ),
         ],
       ),
-      body: _screens[_selectedIndex],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 240),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        child: KeyedSubtree(
+          key: ValueKey<int>(_selectedIndex),
+          child: _screens[_selectedIndex],
+        ),
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (int index) {

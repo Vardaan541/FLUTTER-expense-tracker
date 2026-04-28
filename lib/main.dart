@@ -6,13 +6,14 @@ import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/budget_provider.dart';
-import 'providers/pet_provider.dart';
+import 'providers/level_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'screens/auth_screen.dart';
 import 'screens/home_shell_screen.dart';
 import 'services/auth_service.dart';
 import 'services/firestore_service.dart';
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   // Needed because we are calling async code before runApp.
@@ -39,8 +40,8 @@ Future<void> main() async {
         ChangeNotifierProvider<BudgetProvider>(
           create: (_) => BudgetProvider(firestoreService),
         ),
-        ChangeNotifierProvider<PetProvider>(
-          create: (_) => PetProvider(firestoreService),
+        ChangeNotifierProvider<LevelProvider>(
+          create: (_) => LevelProvider(firestoreService),
         ),
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
       ],
@@ -57,82 +58,13 @@ class SmartExpenseTrackerApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder:
           (BuildContext context, ThemeProvider themeProvider, Widget? child) {
-            final ColorScheme darkScheme = ColorScheme.fromSeed(
-              seedColor: const Color(0xFF4F46E5),
-              brightness: Brightness.dark,
-            );
-            final ColorScheme lightScheme = ColorScheme.fromSeed(
-              seedColor: const Color(0xFF4F46E5),
-              brightness: Brightness.light,
-            );
-
             return MaterialApp(
               // Removes debug banner from top-right
               debugShowCheckedModeBanner: false,
               title: 'Smart Expense Tracker',
               themeMode: themeProvider.themeMode,
-              theme: ThemeData(
-                colorScheme: lightScheme,
-                useMaterial3: true,
-                scaffoldBackgroundColor: const Color(0xFFF3F5FA),
-                cardTheme: CardThemeData(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                ),
-                appBarTheme: const AppBarTheme(
-                  elevation: 0,
-                  centerTitle: false,
-                  backgroundColor: Colors.transparent,
-                ),
-                navigationBarTheme: NavigationBarThemeData(
-                  backgroundColor: const Color(0xFFE8ECF8),
-                  indicatorColor: lightScheme.primary.withValues(alpha: 0.16),
-                  labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((
-                    Set<WidgetState> states,
-                  ) {
-                    final bool selected = states.contains(WidgetState.selected);
-                    return TextStyle(
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                      color: selected
-                          ? lightScheme.onSurface
-                          : lightScheme.onSurface.withValues(alpha: 0.7),
-                    );
-                  }),
-                ),
-              ),
-              darkTheme: ThemeData(
-                colorScheme: darkScheme,
-                useMaterial3: true,
-                scaffoldBackgroundColor: const Color(0xFF090B13),
-                cardTheme: CardThemeData(
-                  color: const Color(0xFF121729),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                ),
-                appBarTheme: const AppBarTheme(
-                  elevation: 0,
-                  centerTitle: false,
-                  backgroundColor: Colors.transparent,
-                ),
-                navigationBarTheme: NavigationBarThemeData(
-                  backgroundColor: const Color(0xFF11172A),
-                  indicatorColor: darkScheme.primary.withValues(alpha: 0.24),
-                  labelTextStyle: WidgetStateProperty.resolveWith<TextStyle>((
-                    Set<WidgetState> states,
-                  ) {
-                    final bool selected = states.contains(WidgetState.selected);
-                    return TextStyle(
-                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                      color: selected
-                          ? darkScheme.onSurface
-                          : darkScheme.onSurface.withValues(alpha: 0.72),
-                    );
-                  }),
-                ),
-              ),
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
               home: const AuthGate(),
             );
           },

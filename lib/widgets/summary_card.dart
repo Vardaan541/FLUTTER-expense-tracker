@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'app_card.dart';
+
 class SummaryCard extends StatelessWidget {
   const SummaryCard({
     super.key,
@@ -18,30 +20,36 @@ class SummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final NumberFormat formatter = NumberFormat.currency(symbol: '₹');
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(16),
+    return AppCard(
+      padding: const EdgeInsets.all(14),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: <Color>[
+          color.withValues(alpha: isDark ? 0.22 : 0.14),
+          color.withValues(alpha: isDark ? 0.13 : 0.07),
+        ],
       ),
       child: Row(
         children: <Widget>[
           CircleAvatar(
-            backgroundColor: color,
-            child: Icon(icon, color: Colors.white),
+            radius: 20,
+            backgroundColor: color.withValues(alpha: 0.9),
+            child: Icon(icon, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(title, style: Theme.of(context).textTheme.bodyMedium),
+                Text(title, style: Theme.of(context).textTheme.labelLarge),
                 const SizedBox(height: 4),
                 Text(
                   formatter.format(value),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ],
